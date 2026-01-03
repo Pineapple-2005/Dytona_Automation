@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Store Inventory System</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="homePage" class="container home-container">
+    
+    <header style="display: flex; flex-direction: column; align-items: center; justify-content: center; margin-bottom: 40px; text-align: center;">
+        <img src="Dytona Transparent Background.png" alt="Store Logo" style="width: 300px; height: auto; margin-bottom: 15px;">
+        
+        <h2 style="margin: 0; color: #2c3e50; font-size: 24px;">Inventory Management System</h2>
+    </header>
+    <div class="category-grid">
+        <div class="cat-card hardware" onclick="navigateToInventory('Hardware')">
+            <h2>🛠️ Hardware</h2>
+            <p>Tools, Fasteners, Paints, Wood</p>
+        </div>
+        <div class="cat-card fishing" onclick="navigateToInventory('Fishing')">
+            <h2>🎣 Fishing</h2>
+            <p>Rods, Lines, Hooks, Nets</p>
+        </div>
+        <div class="cat-card electrical" onclick="navigateToInventory('Electrical')">
+            <h2>⚡ Electrical</h2>
+            <p>Lighting, Wires, Outlets</p>
+        </div>
+        <div class="cat-card all" onclick="navigateToInventory('All')">
+            <h2>📋 All Categories</h2>
+            <p>View Master List</p>
+        </div>
+    </div>
+</div>
+
+<div id="inventoryPage" class="container" style="display: none;">
+    <header>
+        <button class="btn-action" onclick="showHome()">← Back to Home</button>
+        <h1 id="pageTitle">Inventory</h1>
+        <button class="btn-primary" onclick="openAddModal()">+ Add New Product</button>
+    </header>
+
+    <div class="controls">
+        <div style="flex-grow: 1;">
+            <label><strong>Filter:</strong></label>
+            <select id="categoryFilter" onchange="renderTable()">
+                <option value="All">All Categories</option>
+                <option value="Hardware">Hardware</option>
+                <option value="Fishing">Fishing</option>
+                <option value="Electrical">Electrical</option>
+                <option value="Shared">Safety & Shared</option>
+            </select>
+        </div>
+        <div>
+            <input type="text" id="searchBar" placeholder="Search ID or Name..." onkeyup="renderTable()">
+        </div>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>ID (SKU)</th>
+                <th>Item Name</th>
+                <th>Sub-Category</th>
+                <th>Size/Variant</th>
+                <th>Unit</th>
+                <th>Qty</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody id="inventoryTableBody">
+            </tbody>
+    </table>
+</div>
+
+<div id="addModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeModals()">&times;</span>
+        <h2>Add New Item</h2>
+        
+        <div class="form-group">
+            <label>1. Category:</label>
+            <select id="selCategory" onchange="loadSubCategories()">
+                <option value="">-- Select Category --</option>
+                <option value="Hardware">Hardware</option>
+                <option value="Fishing">Fishing</option>
+                <option value="Electrical">Electrical</option>
+                <option value="Shared">Safety & Shared</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>2. Sub-Category:</label>
+            <select id="selSubCat" onchange="loadItems()" disabled>
+                <option value="">-- Select Category First --</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>3. Item Name:</label>
+            <select id="selItem" onchange="loadSizes()" disabled>
+                <option value="">-- Select Sub-Category First --</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>4. Size / Variant:</label>
+            <select id="selSize" onchange="updateIDPreview()" disabled>
+                <option value="">-- Select Item First --</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>5. Sold As (Unit):</label>
+            <select id="selUnit" onchange="updateIDPreview()">
+                <option value="Piece">Piece</option>
+                <option value="Bundle">Bundle</option>
+                <option value="Box">Box</option>
+                <option value="Set">Set</option>
+                <option value="Meter">Meter</option>
+                <option value="Roll">Roll</option>
+                <option value="Liter">Liter (L)</option>
+                <option value="Can">Can</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Generated ID:</label>
+            <input type="text" id="generatedID" readonly style="background-color: #e9ecef; font-weight:bold; color:#444;">
+            <small>Format: Category_SubCat_Item_Size_Unit</small>
+        </div>
+
+        <div class="form-group">
+            <label>Initial Quantity:</label>
+            <input type="number" id="newItemQty" value="0">
+        </div>
+
+        <button class="btn-success" onclick="addNewProduct()">Save Item</button>
+    </div>
+</div>
+
+<div id="stockModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeModals()">&times;</span>
+        <h2>Update Stock</h2>
+        <p>Item: <strong id="stockItemName">---</strong></p>
+        
+        <div class="form-group">
+            <label>Action:</label>
+            <select id="stockAction">
+                <option value="add">🔴 Delivery (Add Stock)</option>
+                <option value="subtract">🟢 Sale (Remove Stock)</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Quantity:</label>
+            <input type="number" id="stockQty" placeholder="Enter amount">
+        </div>
+        <input type="hidden" id="stockItemId">
+        <button class="btn-success" onclick="saveStockUpdate()">Update Inventory</button>
+    </div>
+</div>
+
+<div id="convertModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeModals()">&times;</span>
+        <h2>📦 Break Bundle / Open Box</h2>
+        <p>From: <strong id="convertSourceName"></strong></p>
+        
+        <div class="form-group">
+            <label>Qty to Open (Boxes/Bundles):</label>
+            <input type="number" id="convertQty" value="1" min="1">
+        </div>
+
+        <div class="form-group">
+            <label>Convert Into (Target):</label>
+            <select id="convertTargetItem"></select>
+        </div>
+
+        <div class="form-group">
+            <label>Pieces inside 1 Box/Bundle:</label>
+            <input type="number" id="convertRatio" placeholder="e.g. 50">
+        </div>
+
+        <input type="hidden" id="convertSourceID">
+        <button class="btn-action" style="background-color: #8e44ad;" onclick="executeConversion()">🔄 Convert Stock</button>
+    </div>
+</div>
+
+<script src="script.js"></script>
+
+</body>
+</html>
